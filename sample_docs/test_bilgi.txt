@@ -1,0 +1,12 @@
+Abacus.AI ChatLLM Platformu Hakkında Bilgiler
+
+Abacus.AI, yapay zeka tabanlı otomasyon ve büyük dil modelleri (LLM) üzerine çalışan bir teknoloji şirketidir. ChatLLM Teams, bu platformun kurumsal kullanıcılar için sunduğu, çoklu AI asistanlarıyla çalışmayı sağlayan bir üründür.
+
+Özellikler:
+- Çoklu Model Desteği: Kullanıcılar farklı AI modelleri arasında geçiş yapabilir.
+- Özelleştirilebilir Chatbotlar: Şirketler kendi özel botlarını oluşturabilir.
+- Veri Güvenliği: Kurumsal veriler güvenli bir şekilde işlenir ve saklanır.
+- Entegrasyon: Mevcut iş akışlarına kolayca entegre edilebilir.
+
+Fiyatlandırma ve Destek:
+Detaylı fiyatlandırma için Abacus.AI'nin resmi web sitesindeki Billing FAQs bölümüne bakılmalıdır. Teknik destek için support@abacus.ai adresi kullanılabilir.
