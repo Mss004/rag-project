@@ -1,69 +1,194 @@
-# Yerel IaaS RAG Asistanı (Azure VM)
+# 🤖 Yerel  RAG Asistanı
 
-Bu proje, Azure VM (Standard_B4as_v2) üzerinde çalışan, internet bağlantısı gerektirmeyen, gizlilik odaklı bir RAG (Retrieval-Augmented Generation) sistemidir.
+> **İnternet bağlantısı gerektirmeyen**, gizlilik odaklı, Azure VM veya kişisel bilgisayar üzerinde çalışan yerel RAG (Retrieval-Augmented Generation) sistemi.
 
-## 🚀 Özellikler
-- **Modüler Mimari:** Temiz, bakımı kolay Python modülleri.
-- **Tablo Ayıklama:** PDF içindeki tabloları satır bazlı analiz eder.
-- **Batch Embedding:** Verileri 20'şerli gruplar halinde hızlıca vektörleştirir.
-- **Hibrit Zeka:** Qwen tabanlı embedding ve chat modellerini kullanır.
-- **Streamlit UI:** Kolay dosya yönetimi ve sohbet arayüzü.
+---
 
-## 🛠️ Kurulum
+## 📌 Proje Hakkında
 
-1. **Sanal Ortamı Hazırlayın:**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
+Bu sistem; PDF ve TXT belgelerini analiz ederek, kullanıcının sorularına yalnızca yüklenen belgelere dayanarak cevap üretir. Tüm işlemler **yerel olarak** gerçekleşir — hiçbir veri dışarıya gönderilmez.
 
-2. **Gerekli Paketleri Yükleyin:**
-   ```bash
-   pip install -r requirements.txt
-   pip install pdfplumber
-   ```
+### Temel Özellikler
+- 📄 PDF ve TXT belgelerinden otomatik metin ve tablo çıkarımı
+- 🔍 Vektör tabanlı anlamsal arama (Cosine Similarity)
+- 🧠 Foundry Local üzerinde çalışan Qwen modelleri
+- 🛡️ Hallucination önleme (benzerlik eşiği + sıkı sistem promptu)
+- 🖥️ Streamlit tabanlı kullanıcı arayüzü
 
-3. **Belgeleri Hazırlayın:**
-   PDF ve TXT dosyalarınızı `sample_docs/` klasörüne koyun.
+---
 
-4. **Verileri Yükleyin:**
-   ```bash
-   python ingest_data.py
-   ```
+## 🛠️ Kurulum — Seçenek 1: Azure VM 
 
-5. **Uygulamayı Çalıştırın:**
-   ```bash
-   streamlit run streamlit_app.py --server.address 0.0.0.0 --server.port 8501
-   ```
+### Gereksinimler
+- Azure VM: Standard_B4as_v2 (4 vCPU, 16 GB RAM) veya üzeri
+- Ubuntu 22.04 LTS
+- Python 3.10+
+- Foundry Local kurulu
 
-6. **Tarayıcıdan Açın:**
-   Azure VM public IP adresiniz üzerinden `http://SUNUCU_IP:8501` adresine gidin.
+### Adımlar
+
+**1. Projeyi klonlayın:**
+```bash
+git clone https://github.com/Mss004/rag-project
+cd rag-project
+```
+
+**2. Sanal ortam oluşturun:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+**3. Paketleri yükleyin:**
+```bash
+pip install -r requirements.txt
+pip install pdfplumber
+```
+
+**4. Foundry Local modellerini indirin:**
+```bash
+foundry model download qwen3-embedding-0.6b-generic-cpu
+foundry model download qwen2.5-7b-instruct-generic-cpu
+```
+
+**5. Belgelerinizi ekleyin:**
+Terminal üzerinden:
+```bash
+cp /belgeleriniz/*.pdf sample_docs/
+cp /belgeleriniz/*.txt sample_docs/
+```
+Veya `streamlit`  üzerinden dosyalarınızı yükleyebilirsiniz.
+
+**6. Veritabanını oluşturun:**
+```bash
+python ingest_data.py
+```
+
+**7. Uygulamayı başlatın:**
+```bash
+streamlit run streamlit_app.py --server.address 0.0.0.0 --server.port 8501
+```
+
+**8. Tarayıcıdan açın:**
+```
+http://[VM_PUBLIC_IP]:8501
+```
+
+> ⚠️ Azure NSG (Ağ Güvenlik Grubu) üzerinde 8501 portuna gelen TCP bağlantısına izin vermeyi unutmayın.
+
+---
+
+## 💻 Kurulum — Seçenek 2: Kişisel Bilgisayar (Windows / macOS / Linux)
+
+### Gereksinimler
+| Gereksinim | Minimum | Önerilen |
+|---|---|---|
+| RAM | 8 GB | 16 GB |
+| CPU | 4 Çekirdek | 8 Çekirdek |
+| Depolama | 5 GB boş alan | 10 GB boş alan |
+| Python | 3.10+ | 3.12 |
+| Foundry Local | Kurulu olmalı | — |
+
+### Foundry Local Kurulumu
+Foundry Local'i kurmak için Microsoft'un resmi sayfasını ziyaret edin:
+👉 https://github.com/microsoft/Foundry-Local
+
+### Adımlar
+
+**1. Projeyi klonlayın:**
+```bash
+git clone https://github.com/Mss004/rag-project
+cd rag-project
+```
+
+**2. Sanal ortam oluşturun:**
+
+Windows:
+```powershell
+python -m venv venv
+venv\Scripts\activate
+```
+
+macOS / Linux:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+**3. Paketleri yükleyin:**
+```bash
+pip install -r requirements.txt
+pip install pdfplumber
+```
+
+**4. Foundry Local modellerini indirin:**
+```bash
+foundry model download qwen3-embedding-0.6b-generic-cpu
+foundry model download qwen2.5-7b-instruct-generic-cpu
+```
+
+> ⚠️ Model indirme işlemi internet bağlantısı gerektirir ve yaklaşık 2-4 GB disk alanı kullanır. Modeller indirildikten sonra sistem tamamen çevrimdışı çalışır.
+
+**5. Belgelerinizi ekleyin:**
+`sample_docs/` klasörüne PDF veya TXT dosyalarınızı kopyalayın veya `streamlit`  üzerinden dosyalarınızı yükleyebilirsiniz.
+
+**6. Veritabanını oluşturun:**
+```bash
+python ingest_data.py
+```
+
+**7. Uygulamayı başlatın:**
+```bash
+streamlit run streamlit_app.py
+```
+
+**8. Tarayıcıdan açın:**
+```
+http://localhost:8501
+```
+
+---
 
 ## 📁 Proje Yapısı
 
-- `config.py`: Model isimleri, chunk boyutları ve prompt ayarları.
-- `db.py`: SQLite veritabanı işlemleri.
-- `chunking.py`: Metin normalizasyonu ve chunk üretimi.
-- `pdf_utils.py`: PDF metin ve tablo çıkarımı.
-- `retrieval.py`: Embedding benzerlik araması.
-- `ingest_data.py`: Belgeleri veritabanına yükleme scripti.
-- `streamlit_app.py`: Web arayüzü ve soru-cevap akışı.
-- `sample_docs/`: Kaynak PDF/TXT belgeler klasörü.
+```
+rag-project/
+├── config.py           # Model ve RAG ayarları
+├── db.py               # SQLite veritabanı işlemleri
+├── chunking.py         # Metin normalizasyonu ve parçalama
+├── pdf_utils.py        # PDF metin ve tablo çıkarımı
+├── retrieval.py        # Vektör benzerlik araması
+├── ingest_data.py      # Belge yükleme scripti
+├── streamlit_app.py    # Web arayüzü
+├── requirements.txt    # Python bağımlılıkları
+├── sample_docs/        # Kaynak belgeler klasörü
+└── rag_database.db     # SQLite veritabanı (otomatik oluşur)
+```
 
-## ⚙️ Ayarlar
-`config.py` dosyasında düzenlenebilir temel alanlar:
+---
 
-- `CHUNK_SIZE`: Metin parçalama uzunluğu.
-- `TOP_K`: Sorgu başına getirilecek en alakalı chunk sayısı.
-- `MIN_SIMILARITY`: Yetersiz eşleşmeleri elemek için benzerlik eşiği.
-- `SYSTEM_PROMPT`: Modelin yalnızca belgeye dayalı cevap üretmesini sağlayan sistem promptu.
+## ⚙️ Yapılandırma
 
-## ✅ Test Senaryoları
+`config.py` dosyasından aşağıdaki ayarları değiştirebilirsiniz:
 
-Örnek sorular:
-- "Uç cihaz donanımı olarak ne kullanılmış ve özellikleri nelerdir?"
-- "Sistemdeki orkestrasyon dili hangisidir?"
-- "Google Coral TPU'nun enerji tüketimi nedir?"
+| Parametre | Varsayılan | Açıklama |
+|---|---|---|
+| `CHUNK_SIZE` | 500 | Metin parçalama uzunluğu (karakter) |
+| `TOP_K` | 6 | Sorgu başına getirilen chunk sayısı |
+| `MIN_SIMILARITY` | 0.35 | Minimum benzerlik eşiği |
+| `EMBEDDING_MODEL` | qwen3-embedding-0.6b | Embedding modeli |
+| `CHAT_MODEL` | qwen2.5-7b-instruct | Sohbet modeli |
 
-## 📜 Not
-Bu proje Azure VM üzerinde yerel RAG sistemini temiz ve modüler biçimde çalıştırmak amacıyla hazırlanmıştır.
+---
+
+## 🧪 Test Soruları
+
+Sistemi test etmek için örnek sorular:
+- *"Uç cihaz donanımı olarak ne kullanılmış ve özellikleri nelerdir?"*
+- *"Sistemdeki orkestrasyon dili hangisidir?"*
+- *"TinyML ve SLM bu sistemde nasıl bir işbirliği yapıyor?"*
+
+---
+
+## 📜 Lisans
+Bu proje staj eğitimi kapsamında geliştirilmiştir.
