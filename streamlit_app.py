@@ -15,7 +15,6 @@ from foundry_local_sdk import FoundryLocalManager, Configuration
 # ============================================================
 st.set_page_config(page_title="Yerel RAG Asistanı", page_icon="🤖", layout="wide")
 st.title("📚 Yerel RAG Asistanı")
-st.caption("Azure VM üzerinde çalışır — internet bağlantısı gerekmez.")
 
 
 # ============================================================
@@ -98,10 +97,27 @@ def ingest_uploaded_file(uploaded_file) -> int:
         st.warning(f"'{filename}' için chunk üretilemedi.")
         return 0
 
-    response = embed_client.generate_embeddings(all_chunks)
-    embeddings = [item.embedding for item in response.data]
-    db.insert_chunks(conn, filename, all_chunks, embeddings)
-    return len(all_chunks)
+    # BATCH İŞLEME: Embedding'leri 20'şerli gruplar halinde gönder
+    # Ama progress bar 1'er 1'er artsın
+    BATCH_SIZE = 20
+    total = len(all_chunks)
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+    status_text.text(f"🔢 0/{total} chunk işleniyor...")
+
+    for i in range(0, total, BATCH_SIZE):
+        batch = all_chunks[i:i + BATCH_SIZE]
+        response = embed_client.generate_embeddings(batch)
+        embeddings = [item.embedding for item in response.data]
+        db.insert_chunks(conn, filename, batch, embeddings)
+
+        # Her chunk için progress bar'ı 1'er 1'er güncelle
+        for j in range(len(batch)):
+            current = i + j + 1
+            progress_bar.progress(current / total)
+            status_text.text(f"🔢 {current}/{total} chunk işleniyor...")
+
+    return total
 
 
 def answer_question_stream(question: str):
@@ -109,15 +125,13 @@ def answer_question_stream(question: str):
     Soruyu alır, cevabı kelime kelime yield eder.
     Son dict içinde kaynaklar ve bitiş bayrağı döner.
     """
-    with st.status("🔍 Kaynaklar aranıyor...", state="running") as status:
-        query_emb = embed_client.generate_embedding(question).data[0].embedding
-        results = retrieval.retrieve(query_emb, conn)
-        if not results:
-            status.update(label="❌ Bilgi bulunamadı", state="error")
-            yield "Bu bilgi elimdeki belgelerde bulunmuyor."
-            yield {"__done": True, "sources": []}
-            return
-        status.update(label=f"✅ {len(results)} kaynak bulundu", state="complete")
+    # Kaynak arama sessizce yapılır, bildirim gösterilmez
+    query_emb = embed_client.generate_embedding(question).data[0].embedding
+    results = retrieval.retrieve(query_emb, conn)
+    if not results:
+        yield "Bu bilgi elimdeki belgelerde bulunmuyor."
+        yield {"__done": True, "sources": []}
+        return
 
     context = retrieval.build_context(results)
     messages = [
@@ -173,7 +187,6 @@ with st.sidebar:
                 st.write("📄 Metin çıkarılıyor...")
                 n = ingest_uploaded_file(uf)
                 if n > 0:
-                    st.write(f"🔢 {n} chunk oluşturuldu, vektörler hesaplanıyor...")
                     status.update(label=f"✅ '{uf.name}' → {n} chunk eklendi", state="complete")
                 else:
                     status.update(label=f"⚠️ '{uf.name}' işlenemedi", state="error")
@@ -209,15 +222,15 @@ for msg in st.session_state.messages:
                         f"> {r['text'][:200]}..."
                     )
 
-# Yeni soru
 if question := st.chat_input("Belgelerle ilgili bir soru sorun..."):
     st.session_state.messages.append({"role": "user", "content": question})
     with st.chat_message("user"):
         st.markdown(question)
 
     with st.chat_message("assistant"):
-        # Placeholder ile canlı yazma (ChatGPT tarzı ▌ imleç)
+        # Başlangıçta "Düşünüyor..." göster
         placeholder = st.empty()
+        placeholder.markdown("🧠 Düşünüyor... ▌")
         full_answer = ""
         sources_data = []
 

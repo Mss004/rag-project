@@ -7,7 +7,7 @@ DB_PATH     = os.path.join(BASE_DIR, "rag_database.db")
 
 # --- Foundry Local Modelleri ----------------------------------------------
 EMBEDDING_MODEL = "qwen3-embedding-0.6b-generic-cpu"
-CHAT_MODEL      = "qwen2.5-7b-instruct-generic-cpu"
+CHAT_MODEL = "qwen3.5-2b-generic-cpu"
 
 # --- RAG Davranışı --------------------------------------------------------
 CHUNK_SIZE        = 500
