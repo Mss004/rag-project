@@ -210,7 +210,4 @@ Ran 3 tests in 0.014s
 OK
 ```
 
----
 
-## 📜 Lisans
-Bu proje staj eğitimi kapsamında geliştirilmiştir.
