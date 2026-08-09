@@ -1,4 +1,4 @@
-# 🤖 Yerel IaaS RAG Asistanı
+# 🤖 Yerel  RAG Asistanı
 
 > **İnternet bağlantısı gerektirmeyen**, gizlilik odaklı, Azure VM veya kişisel bilgisayar üzerinde çalışan yerel RAG (Retrieval-Augmented Generation) sistemi.
 
@@ -29,7 +29,7 @@ Bu sistem; PDF ve TXT belgelerini analiz ederek, kullanıcının sorularına yal
 
 **1. Projeyi klonlayın:**
 ```bash
-git clone https://github.com/KULLANICI_ADINIZ/REPO_ADINIZ.git
+git clone https://github.com/Mss004/rag-project
 cd REPO_ADINIZ
 ```
 
@@ -96,7 +96,7 @@ Foundry Local'i kurmak için Microsoft'un resmi sayfasını ziyaret edin:
 
 **1. Projeyi klonlayın:**
 ```bash
-git clone https://github.com/KULLANICI_ADINIZ/REPO_ADINIZ.git
+git clone https://github.com/Mss004/rag-project
 cd REPO_ADINIZ
 ```
 
