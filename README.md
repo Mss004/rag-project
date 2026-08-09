@@ -178,7 +178,7 @@ rag-project/
 | `TOP_K` | 6 | Sorgu başına getirilen chunk sayısı |
 | `MIN_SIMILARITY` | 0.35 | Minimum benzerlik eşiği |
 | `EMBEDDING_MODEL` | qwen3-embedding-0.6b | Embedding modeli |
-| `CHAT_MODEL` | qwen2.5-7b-instruct | Sohbet modeli |
+| `CHAT_MODEL` | qwen3.5-2b-generic-cpu | Sohbet modeli |
 
 ---
 
