@@ -1,6 +1,3 @@
-İşte README.md dosyasının tamamı, tek seferde kopyalayabilirsin:
-
-```markdown
 # 🤖 Yerel RAG Asistanı
 
 > **İnternet bağlantısı gerektirmeyen**, gizlilik odaklı, Azure VM veya kişisel bilgisayar üzerinde çalışan yerel RAG (Retrieval-Augmented Generation) sistemi.
@@ -74,9 +71,11 @@ streamlit run streamlit_app.py --server.address 0.0.0.0 --server.port 8501
 ```
 
 **8. Tarayıcıdan açın:**
-```text
+```
 http://[VM_PUBLIC_IP]:8501
 ```
+
+> ⚠️ Azure NSG (Ağ Güvenlik Grubu) üzerinde 8501 portuna gelen TCP bağlantısına izin vermeyi unutmayın.
 
 ---
 
@@ -143,7 +142,7 @@ streamlit run streamlit_app.py
 ```
 
 **8. Tarayıcıdan açın:**
-```text
+```
 http://localhost:8501
 ```
 
@@ -151,7 +150,7 @@ http://localhost:8501
 
 ## 📁 Proje Yapısı
 
-```text
+```
 rag-project/
 ├── config.py           # Model ve RAG ayarları
 ├── db.py               # SQLite veritabanı işlemleri
@@ -206,7 +205,7 @@ python3 test_rag.py
 - **Normalization:** Türkçe karakterlerin (Unicode NFC/NFKD) doğru işlendiğinin kontrolü.
 
 Başarılı test sonucu çıktısı:
-```text
+```
 Ran 3 tests in 0.014s
 OK
 ```
@@ -215,4 +214,3 @@ OK
 
 ## 📜 Lisans
 Bu proje staj eğitimi kapsamında geliştirilmiştir.
-```
