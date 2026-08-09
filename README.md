@@ -53,6 +53,7 @@ foundry model download qwen2.5-7b-instruct-generic-cpu
 ```
 
 **5. Belgelerinizi ekleyin:**
+
 Terminal üzerinden:
 ```bash
 cp /belgeleriniz/*.pdf sample_docs/
