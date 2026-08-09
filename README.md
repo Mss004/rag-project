@@ -30,7 +30,7 @@ Bu sistem; PDF ve TXT belgelerini analiz ederek, kullanıcının sorularına yal
 **1. Projeyi klonlayın:**
 ```bash
 git clone https://github.com/Mss004/rag-project
-cd REPO_ADINIZ
+cd rag-project
 ```
 
 **2. Sanal ortam oluşturun:**
@@ -52,11 +52,12 @@ foundry model download qwen2.5-7b-instruct-generic-cpu
 ```
 
 **5. Belgelerinizi ekleyin:**
+Terminal üzerinden:
 ```bash
 cp /belgeleriniz/*.pdf sample_docs/
 cp /belgeleriniz/*.txt sample_docs/
 ```
-Veya streamlit üzerinden dosyalarınızı yükleyebilirsiniz.
+Veya `streamlit`  üzerinden dosyalarınızı yükleyebilirsiniz.
 
 **6. Veritabanını oluşturun:**
 ```bash
@@ -70,7 +71,7 @@ streamlit run streamlit_app.py --server.address 0.0.0.0 --server.port 8501
 
 **8. Tarayıcıdan açın:**
 ```
-http://VM_PUBLIC_IP:8501
+http://[VM_PUBLIC_IP]:8501
 ```
 
 > ⚠️ Azure NSG (Ağ Güvenlik Grubu) üzerinde 8501 portuna gelen TCP bağlantısına izin vermeyi unutmayın.
@@ -97,7 +98,7 @@ Foundry Local'i kurmak için Microsoft'un resmi sayfasını ziyaret edin:
 **1. Projeyi klonlayın:**
 ```bash
 git clone https://github.com/Mss004/rag-project
-cd REPO_ADINIZ
+cd rag-project
 ```
 
 **2. Sanal ortam oluşturun:**
@@ -129,7 +130,7 @@ foundry model download qwen2.5-7b-instruct-generic-cpu
 > ⚠️ Model indirme işlemi internet bağlantısı gerektirir ve yaklaşık 2-4 GB disk alanı kullanır. Modeller indirildikten sonra sistem tamamen çevrimdışı çalışır.
 
 **5. Belgelerinizi ekleyin:**
-`sample_docs/` klasörüne PDF veya TXT dosyalarınızı kopyalayın veya streamlit üzerinden dosyalarınızı yükleyebilirsiniz.
+`sample_docs/` klasörüne PDF veya TXT dosyalarınızı kopyalayın veya `streamlit`  üzerinden dosyalarınızı yükleyebilirsiniz.
 
 **6. Veritabanını oluşturun:**
 ```bash
