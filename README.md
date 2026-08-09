@@ -49,7 +49,25 @@ pip install pdfplumber
 **4. Foundry Local modellerini indirin:**
 ```bash
 foundry model download qwen3-embedding-0.6b-generic-cpu
-foundry model download qwen2.5-7b-instruct-generic-cpu
+foundry model download qwen3.5-2b-generic-cpu
+```
+Not: `foundry: command not found` hatası alırsanız, Foundry Local Python SDK üzerinden modeli indirebilirsiniz.
+
+```bash
+python3 -c "
+from foundry_local_sdk import FoundryLocalManager, Configuration
+
+cfg = Configuration(app_name='rag-staj-projesi')
+manager = FoundryLocalManager(cfg)
+
+model = next(
+    m for m in manager.catalog.list_models()
+    if 'qwen3.5-2b-generic-cpu' in str(m.id)
+)
+
+model.download()
+print('Model indirme tamamlandı.')
+"
 ```
 
 **5. Belgelerinizi ekleyin:**
@@ -126,7 +144,25 @@ pip install pdfplumber
 **4. Foundry Local modellerini indirin:**
 ```bash
 foundry model download qwen3-embedding-0.6b-generic-cpu
-foundry model download qwen2.5-7b-instruct-generic-cpu
+foundry model download qwen3.5-2b-generic-cpu
+```
+Not: `foundry: command not found` hatası alırsanız, Foundry Local Python SDK üzerinden modeli indirebilirsiniz.
+
+```bash
+python3 -c "
+from foundry_local_sdk import FoundryLocalManager, Configuration
+
+cfg = Configuration(app_name='rag-staj-projesi')
+manager = FoundryLocalManager(cfg)
+
+model = next(
+    m for m in manager.catalog.list_models()
+    if 'qwen3.5-2b-generic-cpu' in str(m.id)
+)
+
+model.download()
+print('Model indirme tamamlandı.')
+"
 ```
 
 **5. Belgelerinizi ekleyin:**
