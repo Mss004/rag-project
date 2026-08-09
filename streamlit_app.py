@@ -1,8 +1,7 @@
 import os
+import time
 import unicodedata
-
 import streamlit as st
-
 import config
 import db
 import chunking
@@ -10,15 +9,19 @@ import retrieval
 from pdf_utils import extract_pdf_content
 from foundry_local_sdk import FoundryLocalManager, Configuration
 
-#  Sayfa Ayarları                                                               
 
-st.set_page_config(page_title="RAG Asistanı", page_icon="🤖", layout="wide")
+# ============================================================
+# SAYFA AYARLARI
+# ============================================================
+st.set_page_config(page_title="Yerel RAG Asistanı", page_icon="🤖", layout="wide")
 st.title("📚 Yerel RAG Asistanı")
 st.caption("Azure VM üzerinde çalışır — internet bağlantısı gerekmez.")
 
-#  Model Yükleme (bir kez yüklenir, önbellekte kalır)                          
 
-@st.cache_resource(show_spinner="Modeller yükleniyor, lütfen bekleyin...")
+# ============================================================
+# MODEL YÜKLEME (Bir kez, önbellekte kalır)
+# ============================================================
+@st.cache_resource(show_spinner=False)
 def load_models():
     cfg = Configuration(app_name="rag-staj-projesi")
     manager = FoundryLocalManager(cfg)
@@ -41,33 +44,43 @@ def load_models():
     return embed_client, chat_client
 
 
-@st.cache_resource
+@st.cache_resource(show_spinner=False)
 def get_db_connection():
     return db.get_connection()
 
 
-embed_client, chat_client = load_models()
-conn = get_db_connection()
+# ============================================================
+# SİSTEM BAŞLATMA DURUM MESAJLARI
+# ============================================================
+if "models_ready" not in st.session_state:
+    with st.status("🧠 Sistem başlatılıyor...", expanded=True) as status:
+        st.write("🔍 Modeller keşfediliyor...")
+        embed_client, chat_client = load_models()
+        st.write("✅ Embedding modeli hazır")
+        st.write("✅ Chat modeli hazır")
+        st.write("🗄️ Veritabanı bağlanıyor...")
+        conn = get_db_connection()
+        st.write("✅ Veritabanı hazır")
+        status.update(label="🟢 Sistem hazır!", state="complete", expanded=False)
+        st.session_state.models_ready = True
+else:
+    embed_client, chat_client = load_models()
+    conn = get_db_connection()
 
-#  Yardımcı Fonksiyonlar                                                        
 
+# ============================================================
+# YARDIMCI FONKSİYONLAR
+# ============================================================
 def ingest_uploaded_file(uploaded_file) -> int:
-    """
-    Streamlit üzerinden yüklenen dosyayı işler ve DB'ye ekler.
-    Dönüş: eklenen chunk sayısı
-    """
+    """Streamlit üzerinden yüklenen dosyayı işler ve DB'ye ekler."""
     filename = uploaded_file.name
-
-    # Dosyayı sample_docs/ klasörüne kaydet
     os.makedirs(config.DOCS_DIR, exist_ok=True)
     save_path = os.path.join(config.DOCS_DIR, filename)
     with open(save_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
 
-    # Aynı dosya daha önce yüklendiyse temizle
     db.delete_source(conn, filename)
 
-    # Chunk çıkar
     if filename.lower().endswith(".pdf"):
         text, table_chunks = extract_pdf_content(save_path)
         if not text.strip() and not table_chunks:
@@ -79,50 +92,62 @@ def ingest_uploaded_file(uploaded_file) -> int:
         table_chunks = []
 
     text_chunks = chunking.chunk_text(text)
-    all_chunks  = text_chunks + table_chunks
+    all_chunks = text_chunks + table_chunks
 
     if not all_chunks:
         st.warning(f"'{filename}' için chunk üretilemedi.")
         return 0
 
-    # Batch embedding
-    response   = embed_client.generate_embeddings(all_chunks)
+    response = embed_client.generate_embeddings(all_chunks)
     embeddings = [item.embedding for item in response.data]
-
     db.insert_chunks(conn, filename, all_chunks, embeddings)
     return len(all_chunks)
 
 
-def answer_question(question: str) -> tuple[str, list[dict]]:
+def answer_question_stream(question: str):
     """
-    Soruyu embedding'e çevirir, ilgili chunk'ları getirir, LLM'e sorar.
-    Dönüş: (cevap_metni, kullanılan_sonuçlar)
+    Soruyu alır, cevabı kelime kelime yield eder.
+    Son dict içinde kaynaklar ve bitiş bayrağı döner.
     """
-    query_emb = embed_client.generate_embedding(question).data[0].embedding
-    results   = retrieval.retrieve(query_emb, conn)
-
-    # Eşik altında sonuç yoksa modeli hiç çağırma
-    if not results:
-        return "Bu bilgi elimdeki belgelerde bulunmuyor.", []
+    with st.status("🔍 Kaynaklar aranıyor...", state="running") as status:
+        query_emb = embed_client.generate_embedding(question).data[0].embedding
+        results = retrieval.retrieve(query_emb, conn)
+        if not results:
+            status.update(label="❌ Bilgi bulunamadı", state="error")
+            yield "Bu bilgi elimdeki belgelerde bulunmuyor."
+            yield {"__done": True, "sources": []}
+            return
+        status.update(label=f"✅ {len(results)} kaynak bulundu", state="complete")
 
     context = retrieval.build_context(results)
     messages = [
         {"role": "system", "content": config.SYSTEM_PROMPT.format(context=context)},
-        {"role": "user",   "content": question},
+        {"role": "user", "content": question},
     ]
 
     response = chat_client.complete_chat(messages=messages)
-    answer   = response.choices[0].message.content
-    return answer, results
+    answer = response.choices[0].message.content
 
-#  Sidebar — Belge Yönetimi                                                     
+    # Streaming efekti: kelime kelime yield
+    words = answer.split()
+    for i, word in enumerate(words):
+        if i < len(words) - 1:
+            yield word + " "
+        else:
+            yield word
+        time.sleep(0.03)
 
+    # Son olarak kaynakları yield et
+    yield {"__done": True, "sources": results}
+
+
+# ============================================================
+# SIDEBAR — BELGE YÖNETİMİ
+# ============================================================
 with st.sidebar:
     st.header("📁 Belge Yönetimi")
-
-    # Yüklü belgeler
     sources = db.list_sources(conn)
-    total   = db.count(conn)
+    total = db.count(conn)
 
     if sources:
         st.success(f"✅ {len(sources)} belge yüklü ({total} chunk)")
@@ -134,7 +159,6 @@ with st.sidebar:
 
     st.divider()
 
-    # Dosya yükleme
     st.subheader("Yeni Belge Ekle")
     uploaded = st.file_uploader(
         "PDF veya TXT seçin",
@@ -144,27 +168,32 @@ with st.sidebar:
 
     if st.button("📥 Yükle ve İşle", disabled=not uploaded):
         for uf in uploaded:
-            with st.spinner(f"'{uf.name}' işleniyor..."):
+            with st.status(f"'{uf.name}' işleniyor...", expanded=True) as status:
+                st.write("💾 Dosya kaydediliyor...")
+                st.write("📄 Metin çıkarılıyor...")
                 n = ingest_uploaded_file(uf)
-            if n > 0:
-                st.success(f"✅ '{uf.name}' → {n} chunk eklendi.")
+                if n > 0:
+                    st.write(f"🔢 {n} chunk oluşturuldu, vektörler hesaplanıyor...")
+                    status.update(label=f"✅ '{uf.name}' → {n} chunk eklendi", state="complete")
+                else:
+                    status.update(label=f"⚠️ '{uf.name}' işlenemedi", state="error")
         st.rerun()
 
     st.divider()
 
-    # Veritabanını temizle
     if st.button("🗑️ Tüm Veritabanını Temizle", type="secondary"):
         db.clear_all(conn)
         st.success("Veritabanı temizlendi.")
         st.rerun()
 
-#  Ana Alan — Sohbet                                                            
 
+# ============================================================
+# ANA ALAN — SOHBET
+# ============================================================
 if db.count(conn) == 0:
     st.info("👈 Başlamak için sol panelden bir belge yükleyin.")
     st.stop()
 
-# Sohbet geçmişini başlat
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -187,23 +216,33 @@ if question := st.chat_input("Belgelerle ilgili bir soru sorun..."):
         st.markdown(question)
 
     with st.chat_message("assistant"):
-        with st.spinner("Yanıt oluşturuluyor..."):
-            answer, sources = answer_question(question)
+        # Placeholder ile canlı yazma (ChatGPT tarzı ▌ imleç)
+        placeholder = st.empty()
+        full_answer = ""
+        sources_data = []
 
-        st.markdown(answer)
+        for token in answer_question_stream(question):
+            if isinstance(token, dict) and token.get("__done"):
+                sources_data = token.get("sources", [])
+                break
+            full_answer += token
+            placeholder.markdown(full_answer + "▌")
 
-        if sources:
+        # Final metin (imleçsiz)
+        placeholder.markdown(full_answer)
+
+        if sources_data:
             with st.expander("📎 Kullanılan kaynaklar"):
-                for r in sources:
+                for r in sources_data:
                     st.markdown(
                         f"**{r['source']}** — skor: `{r['score']:.3f}`\n\n"
                         f"> {r['text'][:200]}..."
                     )
-            best_score = sources[0]["score"]
-            st.caption(f"En iyi eşleşme: `{best_score:.3f}` — {len(sources)} chunk kullanıldı")
+            best_score = sources_data[0]["score"]
+            st.caption(f"En iyi eşleşme: `{best_score:.3f}` — {len(sources_data)} chunk kullanıldı")
 
-    st.session_state.messages.append({
-        "role":    "assistant",
-        "content": answer,
-        "sources": sources,
-    })
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": full_answer,
+            "sources": sources_data,
+        })
