@@ -1,4 +1,7 @@
-# 🤖 Yerel  RAG Asistanı
+İşte README.md dosyasının tamamı, tek seferde kopyalayabilirsin:
+
+```markdown
+# 🤖 Yerel RAG Asistanı
 
 > **İnternet bağlantısı gerektirmeyen**, gizlilik odaklı, Azure VM veya kişisel bilgisayar üzerinde çalışan yerel RAG (Retrieval-Augmented Generation) sistemi.
 
@@ -14,6 +17,7 @@ Bu sistem; PDF ve TXT belgelerini analiz ederek, kullanıcının sorularına yal
 - 🧠 Foundry Local üzerinde çalışan Qwen modelleri
 - 🛡️ Hallucination önleme (benzerlik eşiği + sıkı sistem promptu)
 - 🖥️ Streamlit tabanlı kullanıcı arayüzü
+- ⚡ **Canlı Yanıt (Streaming):** Cevaplar gerçek zamanlı olarak kelime kelime yazılır.
 
 ---
 
@@ -57,7 +61,7 @@ Terminal üzerinden:
 cp /belgeleriniz/*.pdf sample_docs/
 cp /belgeleriniz/*.txt sample_docs/
 ```
-Veya `streamlit`  üzerinden dosyalarınızı yükleyebilirsiniz.
+Veya `streamlit` üzerinden dosyalarınızı yükleyebilirsiniz.
 
 **6. Veritabanını oluşturun:**
 ```bash
@@ -70,11 +74,9 @@ streamlit run streamlit_app.py --server.address 0.0.0.0 --server.port 8501
 ```
 
 **8. Tarayıcıdan açın:**
-```
+```text
 http://[VM_PUBLIC_IP]:8501
 ```
-
-> ⚠️ Azure NSG (Ağ Güvenlik Grubu) üzerinde 8501 portuna gelen TCP bağlantısına izin vermeyi unutmayın.
 
 ---
 
@@ -90,8 +92,8 @@ http://[VM_PUBLIC_IP]:8501
 | Foundry Local | Kurulu olmalı | — |
 
 ### Foundry Local Kurulumu
-Foundry Local'i kurmak için Microsoft'un resmi sayfasını ziyaret edin:
-👉 https://github.com/microsoft/Foundry-Local
+Foundry Local'i kurmak için Microsoft'un resmi sayfasını ziyaret edin:  
+👉 [Microsoft Foundry Local](https://github.com/microsoft/Foundry-Local)
 
 ### Adımlar
 
@@ -127,10 +129,8 @@ foundry model download qwen3-embedding-0.6b-generic-cpu
 foundry model download qwen2.5-7b-instruct-generic-cpu
 ```
 
-> ⚠️ Model indirme işlemi internet bağlantısı gerektirir ve yaklaşık 2-4 GB disk alanı kullanır. Modeller indirildikten sonra sistem tamamen çevrimdışı çalışır.
-
 **5. Belgelerinizi ekleyin:**
-`sample_docs/` klasörüne PDF veya TXT dosyalarınızı kopyalayın veya `streamlit`  üzerinden dosyalarınızı yükleyebilirsiniz.
+`sample_docs/` klasörüne PDF veya TXT dosyalarınızı kopyalayın veya `streamlit` üzerinden dosyalarınızı yükleyebilirsiniz.
 
 **6. Veritabanını oluşturun:**
 ```bash
@@ -143,7 +143,7 @@ streamlit run streamlit_app.py
 ```
 
 **8. Tarayıcıdan açın:**
-```
+```text
 http://localhost:8501
 ```
 
@@ -151,7 +151,7 @@ http://localhost:8501
 
 ## 📁 Proje Yapısı
 
-```
+```text
 rag-project/
 ├── config.py           # Model ve RAG ayarları
 ├── db.py               # SQLite veritabanı işlemleri
@@ -160,6 +160,7 @@ rag-project/
 ├── retrieval.py        # Vektör benzerlik araması
 ├── ingest_data.py      # Belge yükleme scripti
 ├── streamlit_app.py    # Web arayüzü
+├── test_rag.py         # Otomatik birim testleri (Unit Tests)
 ├── requirements.txt    # Python bağımlılıkları
 ├── sample_docs/        # Kaynak belgeler klasörü
 └── rag_database.db     # SQLite veritabanı (otomatik oluşur)
@@ -190,5 +191,28 @@ Sistemi test etmek için örnek sorular:
 
 ---
 
+## ✅ Otomatik Testler
+
+Projenin teknik doğruluğunu sağlamak için birim testleri (Unit Tests) eklenmiştir. Bu testler kodun temel fonksiyonlarını otomatik olarak denetler.
+
+### Testleri Çalıştırma
+```bash
+python3 test_rag.py
+```
+
+### Test Kapsamı
+- **Chunking:** Metinlerin doğru şekilde parçalara bölündüğünün kontrolü.
+- **Database:** SQLite bağlantısı ve veri yazma/okuma testleri.
+- **Normalization:** Türkçe karakterlerin (Unicode NFC/NFKD) doğru işlendiğinin kontrolü.
+
+Başarılı test sonucu çıktısı:
+```text
+Ran 3 tests in 0.014s
+OK
+```
+
+---
+
 ## 📜 Lisans
 Bu proje staj eğitimi kapsamında geliştirilmiştir.
+```
