@@ -17,7 +17,7 @@ Bu sistem; PDF ve TXT belgelerini analiz ederek, kullanıcının sorularına yal
 
 ---
 
-## 🛠️ Kurulum — Seçenek 1: Azure VM (Önerilen)
+## 🛠️ Kurulum — Seçenek 1: Azure VM 
 
 ### Gereksinimler
 - Azure VM: Standard_B4as_v2 (4 vCPU, 16 GB RAM) veya üzeri
